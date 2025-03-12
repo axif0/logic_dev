@@ -1,19 +1,43 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const PhoneNumberForm = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setMessage({ text: '', type: '' });
     
+    console.log('Submitting phone number:', phoneNumber); // Debug log
+
     try {
-      // Add your submission logic here
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulated API call
-      alert('Submitted successfully!');
+      console.log('Making API call...'); // Debug log
+      const response = await axios.post('http://localhost:5000/api/submit-phone', {
+        phoneNumber: phoneNumber.trim()
+      }, {
+        timeout: 8000, // Increased to 8 seconds
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      console.log('API Response:', response.data); // Debug log
+
+      if (response.data.success) {
+        setMessage({ 
+          text: 'Phone number submitted successfully!', 
+          type: 'success' 
+        });
+        setPhoneNumber(''); // Clear the input
+      }
     } catch (error) {
-      alert('Error submitting form');
+      console.error('Error details:', error); // Debug log
+      setMessage({ 
+        text: error.response?.data?.error || 'Error submitting phone number', 
+        type: 'error' 
+      });
     } finally {
       setIsLoading(false);
     }
@@ -44,14 +68,22 @@ const PhoneNumberForm = () => {
           />
         </div>
 
+        {message.text && (
+          <div className={`text-center p-2 rounded ${
+            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}>
+            {message.text}
+          </div>
+        )}
+
         <button
           type="submit"
           disabled={isLoading}
-          className={`w-full py-3 px-4 bg-primary text-white rounded-lg font-medium 
-            ${isLoading ? 'opacity-75 cursor-not-allowed' : 'hover:bg-opacity-90'} 
-            transition-all duration-200`}
+          className={`w-full bg-secondary text-white py-3 rounded-lg font-semibold
+            ${isLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-secondary/90'}
+          `}
         >
-          {isLoading ? 'Submitting...' : 'SUBMIT'}
+          {isLoading ? 'Submitting...' : 'Submit'}
         </button>
 
         <p className="text-center text-gray-600 text-sm mt-4">
