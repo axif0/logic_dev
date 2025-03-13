@@ -6,28 +6,35 @@ require('dotenv').config();
 const app = express();
 
 // CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
 const corsOptions = {
   origin: function(origin, callback) {
-    // During development, allow all origins
+    console.log('Request origin:', origin); // Debug log
+    
+    // Allow all origins in development
     if (process.env.NODE_ENV === 'development') {
       return callback(null, true);
     }
     
     // In production, check against allowed origins
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+    const allowedOrigins = process.env.ALLOWED_ORIGINS.split(',');
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log('Blocked origin:', origin); // Debug log
       callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST'],
-  credentials: true
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 // Middleware
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// Add OPTIONS handling for preflight requests
+app.options('*', cors(corsOptions));
 
 // Create database pool
 const pool = mysql.createPool({
@@ -111,7 +118,7 @@ initializeDatabase().then(() => {
   
   app.listen(PORT, HOST, () => {
     console.log(`Server running on ${HOST}:${PORT}`);
-    console.log('Allowed origins:', allowedOrigins);
+    console.log('Allowed origins:', process.env.ALLOWED_ORIGINS.split(','));
   });
 }).catch(err => {
   console.error('Failed to initialize server:', err);
