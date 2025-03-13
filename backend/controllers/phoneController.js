@@ -7,40 +7,60 @@ class PhoneController {
     const { phoneNumber } = req.body;
 
     try {
+      Logger.info('Received request with phone:', phoneNumber);
+
       if (!phoneNumber || phoneNumber.length < 11) {
+        Logger.error('Invalid phone number length:', phoneNumber?.length);
         return res.status(400).json({ 
           success: false, 
           error: 'Invalid phone number' 
         });
       }
 
-      Logger.info(`Processing phone number: ${phoneNumber}`);
-
       // Request OTP
+      Logger.info('Requesting OTP for phone:', phoneNumber);
       const otpResponse = await OtpService.requestOTP(phoneNumber);
-      Logger.info('OTP Response:', otpResponse);
+      Logger.info('Raw OTP Response:', JSON.stringify(otpResponse, null, 2));
       
-      if (otpResponse.statusCode === 'S1000') {
-        // Save phone number to database (without country code)
+      if (otpResponse && otpResponse.statusCode === 'S1000') {
+        // Save phone number to database
         await PhoneModel.create(phoneNumber);
+
+        Logger.info('OTP sent successfully:', {
+          referenceNo: otpResponse.referenceNo,
+          statusCode: otpResponse.statusCode
+        });
 
         return res.json({
           success: true,
           referenceNo: otpResponse.referenceNo,
-          message: 'OTP sent successfully'
+          message: 'OTP sent successfully',
+          statusDetail: otpResponse.statusDetail
         });
       } else {
-        Logger.error('OTP request failed with status:', otpResponse.statusCode);
+        Logger.error('OTP request failed:', {
+          statusCode: otpResponse?.statusCode,
+          statusDetail: otpResponse?.statusDetail,
+          response: otpResponse
+        });
+
         return res.status(400).json({
           success: false,
-          error: otpResponse.statusDetail || 'Failed to send OTP'
+          error: otpResponse?.statusDetail || 'Failed to send OTP',
+          statusCode: otpResponse?.statusCode
         });
       }
     } catch (error) {
-      Logger.error('Error processing request:', error);
+      Logger.error('Error processing request:', {
+        error: error.message,
+        stack: error.stack,
+        response: error.response?.data
+      });
+
       return res.status(500).json({ 
         success: false, 
-        error: error.message || 'Server error while processing request' 
+        error: error.response?.data?.statusDetail || error.message || 'Server error while processing request',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   }
