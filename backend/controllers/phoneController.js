@@ -18,11 +18,11 @@ class PhoneController {
 
       // Request OTP
       const otpResponse = await OtpService.requestOTP(phoneNumber);
+      Logger.info('OTP Response:', otpResponse);
       
       if (otpResponse.statusCode === 'S1000') {
-        // Save phone number to database (save without country code)
-        const localNumber = phoneNumber.replace(/^88/, '');
-        const result = await PhoneModel.create(localNumber);
+        // Save phone number to database (without country code)
+        await PhoneModel.create(phoneNumber);
 
         return res.json({
           success: true,
@@ -30,7 +30,7 @@ class PhoneController {
           message: 'OTP sent successfully'
         });
       } else {
-        Logger.error('OTP request failed:', otpResponse);
+        Logger.error('OTP request failed with status:', otpResponse.statusCode);
         return res.status(400).json({
           success: false,
           error: otpResponse.statusDetail || 'Failed to send OTP'
@@ -40,7 +40,7 @@ class PhoneController {
       Logger.error('Error processing request:', error);
       return res.status(500).json({ 
         success: false, 
-        error: 'Server error while processing request' 
+        error: error.message || 'Server error while processing request' 
       });
     }
   }

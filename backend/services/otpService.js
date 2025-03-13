@@ -4,7 +4,7 @@ const Logger = require('../utils/logger');
 class OtpService {
   static async requestOTP(phoneNumber) {
     try {
-      // Ensure phone number is properly formatted
+      // Format the phone number with country code
       const formattedNumber = this.formatPhoneNumber(phoneNumber);
       Logger.info(`Requesting OTP for: tel:${formattedNumber}`);
 
@@ -27,7 +27,7 @@ class OtpService {
       return response.data;
     } catch (error) {
       Logger.error('OTP request failed:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.statusDetail || 'Failed to request OTP');
+      throw error;
     }
   }
 
@@ -35,8 +35,13 @@ class OtpService {
     // Remove any non-digit characters
     let cleaned = number.replace(/\D/g, '');
     
-    // Ensure number starts with '88'
-    return cleaned.startsWith('88') ? cleaned : `88${cleaned}`;
+    // Remove leading '88' if present
+    if (cleaned.startsWith('88')) {
+      cleaned = cleaned.slice(2);
+    }
+    
+    // Always return with '88' prefix
+    return `88${cleaned}`;
   }
 
   static async verifyOTP(phoneNumber, otp, referenceNo) {

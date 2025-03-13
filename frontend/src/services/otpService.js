@@ -6,9 +6,7 @@ export const requestOTP = async (phoneNumber) => {
     console.log('Formatted number:', formattedNumber);
     
     const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/submit-phone`, {
-      phoneNumber: formattedNumber,
-      applicationId: process.env.REACT_APP_APPLICATION_ID,
-      password: process.env.REACT_APP_PASSWORD
+      phoneNumber: formattedNumber
     }, {
       headers: {
         'Content-Type': 'application/json'
@@ -47,5 +45,5 @@ const formatPhoneNumber = (number) => {
     cleaned = cleaned.slice(2);
   }
   
-  return cleaned.startsWith('88') ? cleaned : `88${cleaned}`;
+  return cleaned;
 }; 
