@@ -2,6 +2,7 @@
   "name": "logic_dev",
   "version": "1.0.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "@heroicons/react": "^2.0.13",
     "axios": "^1.6.7",

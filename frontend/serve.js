@@ -1,18 +1,17 @@
-const handler = require('serve-handler');
-const http = require('http');
+const express = require('express');
 const path = require('path');
 
-const server = http.createServer((request, response) => {
-  return handler(request, response, {
-    public: 'build',
-    rewrites: [
-      { source: '/**', destination: '/index.html' }
-    ],
-    cleanUrls: true,
-    directoryListing: false
-  });
+const app = express();
+
+// Serve static files from the build directory
+app.use(express.static(path.join(__dirname, 'build')));
+
+// Handle all routes by serving index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
-server.listen(3000, '0.0.0.0', () => {
+app.listen(3000, '0.0.0.0', () => {
   console.log('Frontend running at http://0.0.0.0:3000');
+  console.log('Serving from:', path.join(__dirname, 'build'));
 }); 
