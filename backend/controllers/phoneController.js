@@ -14,12 +14,15 @@ class PhoneController {
         });
       }
 
+      Logger.info(`Processing phone number: ${phoneNumber}`);
+
       // Request OTP
       const otpResponse = await OtpService.requestOTP(phoneNumber);
       
       if (otpResponse.statusCode === 'S1000') {
-        // Save phone number to database
-        const result = await PhoneModel.create(phoneNumber);
+        // Save phone number to database (save without country code)
+        const localNumber = phoneNumber.replace(/^88/, '');
+        const result = await PhoneModel.create(localNumber);
 
         return res.json({
           success: true,
@@ -27,6 +30,7 @@ class PhoneController {
           message: 'OTP sent successfully'
         });
       } else {
+        Logger.error('OTP request failed:', otpResponse);
         return res.status(400).json({
           success: false,
           error: otpResponse.statusDetail || 'Failed to send OTP'
