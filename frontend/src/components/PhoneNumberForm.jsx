@@ -56,35 +56,27 @@ const PhoneNumberForm = () => {
     try {
       const otpResponse = await requestOTP(phoneNumber);
       
-      if (otpResponse.statusCode === 'S1000') {
+      if (otpResponse.success) {
         const encryptedRef = encrypt(otpResponse.referenceNo);
         localStorage.setItem('otpReference', encryptedRef);
         
-        const backendResponse = await axios.post(`${process.env.REACT_APP_API_URL}/api/submit-phone`, {
-          phoneNumber: phoneNumber.trim()
-        }, {
-          timeout: 8000,
-          headers: { 'Content-Type': 'application/json' }
+        setMessage({ 
+          text: 'OTP sent successfully!', 
+          type: 'success' 
         });
-
-        if (backendResponse.data.success) {
-          setMessage({ 
-            text: 'OTP sent successfully!', 
-            type: 'success' 
-          });
-          setShowVerifySection(true);
-        }
-      } else {
-        // Handle non-S1000 status codes
-        setMessage({
-          text: otpResponse.statusDetail || 'Failed to send OTP',
-          type: 'error'
-        });
+        setShowVerifySection(true);
       }
     } catch (error) {
-      console.error('Error details:', error);
+      let errorMessage = error.message;
+      
+      // Handle specific error cases
+      if (error.message.includes('allowed-host-address')) {
+        errorMessage = 'Service temporarily unavailable. Please try again later.';
+        console.error('Server IP needs to be whitelisted:', error.message);
+      }
+
       setMessage({ 
-        text: error.message || 'Error processing request',
+        text: errorMessage,
         type: 'error' 
       });
     } finally {

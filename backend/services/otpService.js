@@ -3,6 +3,8 @@ const Logger = require('../utils/logger');
 
 class OtpService {
   static async requestOTP(phoneNumber) {
+    // Comment this section temporarily for testing UI
+    /*
     try {
       const formattedNumber = this.formatPhoneNumber(phoneNumber);
       Logger.info('Formatted phone number:', formattedNumber);
@@ -45,6 +47,15 @@ class OtpService {
       }
       throw error;
     }
+    */
+
+    // Mock successful response for testing
+    return {
+      statusCode: 'S1000',
+      statusDetail: 'Success',
+      referenceNo: '1234567890',
+      version: '1.0'
+    };
   }
 
   static formatPhoneNumber(number) {
