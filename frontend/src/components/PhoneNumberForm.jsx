@@ -15,7 +15,7 @@ const PhoneNumberForm = () => {
 
     try {
       console.log('Making API call...'); // Debug log
-      const response = await axios.post('http://localhost:5000/api/submit-phone', {
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/submit-phone`, {
         phoneNumber: phoneNumber.trim()
       }, {
         timeout: 8000, // Increased to 8 seconds
