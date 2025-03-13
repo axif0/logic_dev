@@ -11,31 +11,40 @@ const PhoneNumberForm = () => {
     setIsLoading(true);
     setMessage({ text: '', type: '' });
     
-    console.log('Submitting phone number:', phoneNumber); // Debug log
+    console.log('API URL:', process.env.REACT_APP_API_URL); // Debug log
+    console.log('Submitting phone number:', phoneNumber);
 
     try {
-      console.log('Making API call...'); // Debug log
       const response = await axios.post(`${process.env.REACT_APP_API_URL}/api/submit-phone`, {
         phoneNumber: phoneNumber.trim()
       }, {
-        timeout: 8000, // Increased to 8 seconds
+        timeout: 8000,
         headers: {
           'Content-Type': 'application/json'
         }
       });
-      console.log('API Response:', response.data); // Debug log
+
+      console.log('API Response:', response.data);
 
       if (response.data.success) {
         setMessage({ 
           text: 'Phone number submitted successfully!', 
           type: 'success' 
         });
-        setPhoneNumber(''); // Clear the input
+        setPhoneNumber('');
       }
     } catch (error) {
-      console.error('Error details:', error); // Debug log
+      console.error('Error details:', error);
+      let errorMessage = 'Error submitting phone number';
+      
+      if (error.code === 'ERR_NETWORK') {
+        errorMessage = 'Cannot connect to server. Please check your connection.';
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      
       setMessage({ 
-        text: error.response?.data?.error || 'Error submitting phone number', 
+        text: errorMessage,
         type: 'error' 
       });
     } finally {
