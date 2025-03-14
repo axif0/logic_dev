@@ -24,8 +24,23 @@ async function initializeDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    console.log('Table checked/created successfully');
-
+    
+    await connection.query(`
+      CREATE TABLE IF NOT EXISTS user_details (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        timestamp VARCHAR(50),
+        subscriber_id VARCHAR(255),
+        subscriber_request_id VARCHAR(100),
+        application_id VARCHAR(50),
+        version VARCHAR(10),
+        frequency VARCHAR(20),
+        status VARCHAR(20),
+        time_stamp VARCHAR(50),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    console.log('Tables checked/created successfully');
     connection.release();
   } catch (error) {
     console.error('Database initialization error:', error);
