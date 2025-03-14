@@ -1,9 +1,9 @@
-const { pool } = require('../config/database');
+const { getPool } = require('../config/database');
 
 class PhoneModel {
   static async create(phoneNumber) {
     try {
-      const [result] = await pool.execute(
+      const [result] = await getPool().execute(
         'INSERT INTO phone_numbers (phone_number) VALUES (?)',
         [phoneNumber]
       );

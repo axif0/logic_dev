@@ -1,23 +1,44 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 
-const pool = mysql.createPool({
+// First create a connection without database selection
+const createDbConnection = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
   port: process.env.DB_PORT,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
 
+// Main connection pool (will be initialized after database creation)
+let pool;
+
 async function initializeDatabase() {
   try {
-    const connection = await pool.getConnection();
+    // First, try to create the database if it doesn't exist
+    const connection = await createDbConnection.getConnection();
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`);
+    connection.release();
+    
+    // Now initialize the main connection pool with the database
+    pool = mysql.createPool({
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT,
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0
+    });
+
+    // Create tables
+    const dbConnection = await pool.getConnection();
     console.log('Database connected successfully');
 
-    await connection.query(`
+    await dbConnection.query(`
       CREATE TABLE IF NOT EXISTS phone_numbers (
         id INT AUTO_INCREMENT PRIMARY KEY,
         phone_number VARCHAR(15) NOT NULL,
@@ -25,7 +46,7 @@ async function initializeDatabase() {
       )
     `);
     
-    await connection.query(`
+    await dbConnection.query(`
       CREATE TABLE IF NOT EXISTS user_details (
         id INT AUTO_INCREMENT PRIMARY KEY,
         timestamp VARCHAR(50),
@@ -41,11 +62,14 @@ async function initializeDatabase() {
     `);
     
     console.log('Tables checked/created successfully');
-    connection.release();
+    dbConnection.release();
   } catch (error) {
     console.error('Database initialization error:', error);
     throw error;
   }
 }
 
-module.exports = { pool, initializeDatabase }; 
+module.exports = { 
+  initializeDatabase,
+  getPool: () => pool // Export a function to get the pool after initialization
+}; 

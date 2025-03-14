@@ -1,4 +1,4 @@
-const { pool } = require('../config/database');
+const { getPool } = require('../config/database');
 const Logger = require('../utils/logger');
 
 class UserDetailsModel {
@@ -18,7 +18,7 @@ class UserDetailsModel {
         response.timeStamp || null
       ];
       
-      const [result] = await pool.execute(
+      const [result] = await getPool().execute(
         `INSERT INTO user_details (
           timestamp,
           subscriber_id,
@@ -33,7 +33,7 @@ class UserDetailsModel {
       );
 
       if (result.insertId) {
-        const [rows] = await pool.execute(
+        const [rows] = await getPool().execute(
           'SELECT * FROM user_details WHERE id = ?',
           [result.insertId]
         );
@@ -49,7 +49,7 @@ class UserDetailsModel {
 
   static async getById(id) {
     try {
-      const [rows] = await pool.execute(
+      const [rows] = await getPool().execute(
         'SELECT * FROM user_details WHERE id = ?',
         [id]
       );
