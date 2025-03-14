@@ -17,8 +17,12 @@ let pool;
 
 async function initializeDatabase() {
   try {
+    console.log('Attempting to connect to MySQL...');
     // First, try to create the database if it doesn't exist
     const connection = await createDbConnection.getConnection();
+    console.log('Connected to MySQL server successfully');
+    
+    console.log('Creating database if not exists...');
     await connection.query(`CREATE DATABASE IF NOT EXISTS ${process.env.DB_NAME}`);
     connection.release();
     
@@ -38,6 +42,7 @@ async function initializeDatabase() {
     const dbConnection = await pool.getConnection();
     console.log('Database connected successfully');
 
+    console.log('Creating tables if not exist...');
     await dbConnection.query(`
       CREATE TABLE IF NOT EXISTS phone_numbers (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -64,12 +69,19 @@ async function initializeDatabase() {
     console.log('Tables checked/created successfully');
     dbConnection.release();
   } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error('Database initialization error:', {
+      message: error.message,
+      code: error.code,
+      errno: error.errno,
+      syscall: error.syscall,
+      address: error.address,
+      port: error.port
+    });
     throw error;
   }
 }
 
 module.exports = { 
   initializeDatabase,
-  getPool: () => pool // Export a function to get the pool after initialization
+  getPool: () => pool
 }; 
